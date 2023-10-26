@@ -6,6 +6,7 @@ import {
   SECRET_PERSONAL,
   SECRET_SHARED
 } from "../variables";
+import { secretRemainderSchema } from "./secretRemainder";
 
 export interface ISecret {
   _id: Types.ObjectId;
@@ -34,6 +35,10 @@ export interface ISecret {
   folder?: string;
   metadata?: {
     [key: string]: string;
+  };
+  secretRemainder?: {
+    cron: string;
+    note: string;
   };
 }
 
@@ -141,7 +146,8 @@ const secretSchema = new Schema<ISecret>(
     },
     metadata: {
       type: Schema.Types.Mixed
-    }
+    },
+    secretRemainder: secretRemainderSchema
   },
   {
     timestamps: true
