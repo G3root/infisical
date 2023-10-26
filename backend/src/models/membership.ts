@@ -1,5 +1,6 @@
 import { Schema, Types, model } from "mongoose";
 import { ADMIN, CUSTOM, MEMBER, VIEWER } from "../variables";
+import { IUser } from "./user";
 
 export interface IMembershipPermission {
   environmentSlug: string;
@@ -8,7 +9,7 @@ export interface IMembershipPermission {
 
 export interface IMembership {
   _id: Types.ObjectId;
-  user: Types.ObjectId;
+  user: IUser;
   inviteEmail?: string;
   workspace: Types.ObjectId;
   role: "admin" | "member" | "viewer" | "custom";
