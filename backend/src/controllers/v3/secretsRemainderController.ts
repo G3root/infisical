@@ -1,10 +1,17 @@
 import * as reqValidator from "../../validation/secretsRemainders";
 import { Request, Response } from "express";
-import { ProjectPermissionActions } from "../../ee/services/ProjectRoleService";
+import {
+  ProjectPermissionActions,
+  ProjectPermissionSub,
+  getUserProjectPermissions
+} from "../../ee/services/ProjectRoleService";
 import { checkSecretsPermission } from "../../helpers";
 import { validateRequest } from "../../helpers/validation";
 import { Types } from "mongoose";
 import { SecretRemainderService } from "../../services/SecretRemainderService";
+import { addToSecretRemainderQueue } from "../../queues/secret-remainder/secretRemainderQueue";
+import { ForbiddenError } from "@casl/ability";
+import { Membership } from "../../models";
 
 /**
  * create secret remainder with name [secretName]
@@ -25,6 +32,12 @@ export const createRemainder = async (req: Request, res: Response) => {
     secretAction: ProjectPermissionActions.Create
   });
 
+  const { permission } = await getUserProjectPermissions(req.user._id, workspaceId);
+  ForbiddenError.from(permission).throwUnlessCan(
+    ProjectPermissionActions.Read,
+    ProjectPermissionSub.Member
+  );
+
   const secret = await SecretRemainderService.createSecretRemainder({
     environment,
     secretPath,
@@ -32,6 +45,18 @@ export const createRemainder = async (req: Request, res: Response) => {
     secretRemainder,
     secretName,
     authData: req.authData
+  });
+
+  const users = await Membership.find({
+    workspace: workspaceId
+  }).populate("user");
+
+  await addToSecretRemainderQueue({
+    id: secret._id.toString(),
+    cron: secretRemainder.cron,
+    note: secretRemainder.note,
+    mailsToSend: users.map((item) => item.user.email),
+    secretName
   });
 
   return res.status(200).send({
