@@ -1,6 +1,7 @@
 import {
   CreateSecretRemainderParams,
-  DeleteSecretRemainderParams
+  DeleteSecretRemainderParams,
+  UpdateSecretRemainderParams
 } from "../interfaces/services/SecretRemainderService";
 import { Secret } from "../models";
 import { getFolderIdFromServiceToken } from "../services/FolderService";
@@ -14,17 +15,36 @@ import { TelemetryService } from "../services";
 import { Types } from "mongoose";
 import { AuthData } from "../interfaces/middleware";
 
-interface updateSecretRemainderParams {
+type BaseParams = {
   workspaceId: Types.ObjectId;
   secretName: string;
   environment: string;
   secretPath: string;
   authData: AuthData;
-  secretRemainder?: {
+};
+
+type CreateParams = {
+  action: "create";
+  secretRemainder: {
     cron: string;
     note: string;
   };
-}
+};
+
+type UpdateParams = {
+  action: "update";
+  secretRemainder: {
+    cron?: string;
+    note?: string;
+  };
+};
+
+type DeleteParams = {
+  action: "delete";
+  secretRemainder?: never;
+};
+
+type updateSecretRemainderParams = BaseParams & (DeleteParams | CreateParams | UpdateParams);
 
 async function updateSecretRemainder({
   authData,
@@ -32,7 +52,8 @@ async function updateSecretRemainder({
   secretName,
   secretPath,
   workspaceId,
-  secretRemainder
+  secretRemainder,
+  action: updateAction
 }: updateSecretRemainderParams) {
   const salt = await getSecretBlindIndexSaltHelper({
     workspaceId
@@ -45,7 +66,7 @@ async function updateSecretRemainder({
 
   const folderId = await getFolderIdFromServiceToken(workspaceId, environment, secretPath);
 
-  let secret = await Secret.findOne(
+  const secret = await Secret.findOneAndUpdate(
     {
       folder: folderId,
       workspace: workspaceId,
@@ -53,25 +74,14 @@ async function updateSecretRemainder({
       secretBlindIndex
     },
     {
-      ...(secretRemainder ? { secretRemainder } : { $unset: { secretRemainder: 1 } }),
-      $inc: { version: 1 }
-    },
-    {
-      new: true
-    }
-  );
-
-  if (!secret) throw SecretNotFoundError();
-
-  secret = await Secret.findOneAndUpdate(
-    {
-      folder: folderId,
-      workspace: workspaceId,
-      environment,
-      secretBlindIndex
-    },
-    {
-      ...(secretRemainder ? { secretRemainder } : { $unset: { secretRemainder: 1 } }),
+      ...(updateAction === "create" && { secretRemainder }),
+      ...(updateAction === "delete" && { $unset: { secretRemainder: 1 } }),
+      ...(updateAction === "update" && {
+        $set: {
+          ...(secretRemainder.cron && { "secretRemainder.cron": secretRemainder.cron }),
+          ...(secretRemainder.note && { "secretRemainder.note": secretRemainder.note })
+        }
+      }),
       $inc: { version: 1 }
     },
     {
@@ -172,9 +182,13 @@ async function updateSecretRemainder({
 }
 
 export const createSecretRemainderHelper = async (params: CreateSecretRemainderParams) => {
-  return await updateSecretRemainder(params);
+  return await updateSecretRemainder({ action: "create", ...params });
 };
 
 export const deleteSecretRemainderHelper = async (params: DeleteSecretRemainderParams) => {
-  return await updateSecretRemainder(params);
+  return await updateSecretRemainder({ action: "delete", ...params });
+};
+
+export const updateSecretRemainderHelper = async (params: UpdateSecretRemainderParams) => {
+  return await updateSecretRemainder({ action: "update", ...params });
 };

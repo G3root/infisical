@@ -38,4 +38,20 @@ router.delete(
   secretsRemainderController.deleteRemainder
 );
 
+router.patch(
+  "/:secretName",
+  requireAuth({
+    acceptedAuthModes: [
+      AuthMode.JWT,
+      AuthMode.API_KEY,
+      AuthMode.SERVICE_TOKEN,
+      AuthMode.SERVICE_TOKEN_V3
+    ]
+  }),
+  requireBlindIndicesEnabled({
+    locationWorkspaceId: "body"
+  }),
+  secretsRemainderController.updateRemainder
+);
+
 export default router;

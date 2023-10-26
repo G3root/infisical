@@ -65,3 +65,23 @@ export const deleteRemainder = async (req: Request, res: Response) => {
     secret
   });
 };
+
+export const updateRemainder = async (req: Request, res: Response) => {
+  const {
+    body: { environment, workspaceId, secretPath, secretRemainder },
+    params: { secretName }
+  } = await validateRequest(reqValidator.UpdateSecretRemainder, req);
+
+  const secret = await SecretRemainderService.updateSecretRemainder({
+    environment,
+    secretPath,
+    workspaceId: new Types.ObjectId(workspaceId),
+    secretRemainder,
+    secretName,
+    authData: req.authData
+  });
+
+  return res.status(200).send({
+    secret
+  });
+};

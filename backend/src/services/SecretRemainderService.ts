@@ -1,10 +1,12 @@
 import {
   CreateSecretRemainderParams,
-  DeleteSecretRemainderParams
+  DeleteSecretRemainderParams,
+  UpdateSecretRemainderParams
 } from "../interfaces/services/SecretRemainderService";
 import {
   createSecretRemainderHelper,
-  deleteSecretRemainderHelper
+  deleteSecretRemainderHelper,
+  updateSecretRemainderHelper
 } from "../helpers/secretRemainder";
 
 export class SecretRemainderService {
@@ -14,5 +16,9 @@ export class SecretRemainderService {
 
   static async deleteSecretRemainder(params: DeleteSecretRemainderParams) {
     return await deleteSecretRemainderHelper(params);
+  }
+
+  static async updateSecretRemainder(params: UpdateSecretRemainderParams) {
+    return await updateSecretRemainderHelper(params);
   }
 }
