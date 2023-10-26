@@ -14,6 +14,7 @@ import { UserWsKeyPair, WsTag } from "@app/hooks/api/types";
 
 import { useSelectedSecretActions, useSelectedSecrets } from "../../SecretMainPage.store";
 import { Filter, GroupBy, SortDir } from "../../SecretMainPage.types";
+import { SecretRemainderForm } from "../SecretRemainderForm";
 import { SecretDetailSidebar } from "./SecretDetaiSidebar";
 import { SecretItem } from "./SecretItem";
 
@@ -93,7 +94,8 @@ export const SecretListView = ({
   const { popUp, handlePopUpToggle, handlePopUpOpen, handlePopUpClose } = usePopUp([
     "deleteSecret",
     "secretDetail",
-    "createTag"
+    "createTag",
+    "secretRemainder"
   ] as const);
 
   // strip of side effect queries
@@ -286,6 +288,10 @@ export const SecretListView = ({
     }
   }, [(popUp.deleteSecret?.data as DecryptedSecret)?.key, environment, secretPath]);
 
+  const handleSecretRemainder = useCallback(
+    (sec: DecryptedSecret) => handlePopUpOpen("secretRemainder", sec),
+    []
+  );
   // for optimization on minimise re-rendering of secret items
   const onCreateTag = useCallback(() => handlePopUpOpen("createTag"), []);
   const onDeleteSecret = useCallback(
@@ -306,7 +312,7 @@ export const SecretListView = ({
             <div className="flex flex-col" key={`${namespace}-${groupedSecrets.length}`}>
               <div
                 className={twMerge(
-                  "bg-bunker-600 capitalize text-md h-0 transition-all",
+                  "text-md h-0 bg-bunker-600 capitalize transition-all",
                   Boolean(namespace) && Boolean(filteredSecrets.length) && "h-11 py-3 pl-4 "
                 )}
                 key={namespace}
@@ -327,6 +333,7 @@ export const SecretListView = ({
                   onDeleteSecret={onDeleteSecret}
                   onDetailViewSecret={onDetailViewSecret}
                   onCreateTag={onCreateTag}
+                  handleSecretRemainder={handleSecretRemainder}
                 />
               ))}
             </div>
@@ -358,6 +365,16 @@ export const SecretListView = ({
         isOpen={popUp.createTag.isOpen}
         onToggle={(isOpen) => handlePopUpToggle("createTag", isOpen)}
       />
+
+      {popUp.secretRemainder.isOpen && (
+        <SecretRemainderForm
+          onToggle={(isOpen) => handlePopUpToggle("secretRemainder", isOpen)}
+          secret={popUp.secretRemainder?.data as DecryptedSecret}
+          secretPath={secretPath}
+          workspaceId={workspaceId}
+          environment={environment}
+        />
+      )}
     </>
   );
 };
