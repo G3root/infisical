@@ -7,6 +7,8 @@ import {
   SECRET_SHARED
 } from "../../variables";
 
+import { secretRemainderSchema } from "../../models/secretRemainder";
+
 export interface ISecretVersion {
   _id: Types.ObjectId;
   secret: Types.ObjectId;
@@ -29,6 +31,10 @@ export interface ISecretVersion {
   createdAt: string;
   folder?: string;
   tags?: string[];
+  secretRemainder?: {
+    cron: string;
+    note: string;
+  };
 }
 
 const secretVersionSchema = new Schema<ISecretVersion>(
@@ -122,7 +128,8 @@ const secretVersionSchema = new Schema<ISecretVersion>(
       ref: "Tag",
       type: [Schema.Types.ObjectId],
       default: []
-    }
+    },
+    secretRemainder: secretRemainderSchema
   },
   {
     timestamps: true
