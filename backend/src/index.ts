@@ -67,6 +67,7 @@ import {
 } from "./routes/v2";
 import {
   auth as v3AuthRouter,
+  secretsRemainders as v3SecretsRemaindersRouter,
   secrets as v3SecretsRouter,
   signup as v3SignupRouter,
   users as v3UsersRouter,
@@ -83,7 +84,7 @@ import {
   getSecretScanningPrivateKey,
   getSecretScanningWebhookProxy,
   getSecretScanningWebhookSecret,
-  getSiteURL,
+  getSiteURL
 } from "./config";
 import { setup } from "./utils/setup";
 import { syncSecretsToThirdPartyServices } from "./queues/integrations/syncSecretsToThirdPartyServices";
@@ -230,6 +231,7 @@ const main = async () => {
   app.use("/api/v3/workspaces", v3WorkspacesRouter);
   app.use("/api/v3/signup", v3SignupRouter);
   app.use("/api/v3/users", v3UsersRouter);
+  app.use("/api/v3/secrets-remainders", v3SecretsRemaindersRouter);
 
   // api docs
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerFile));
