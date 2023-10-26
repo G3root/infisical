@@ -21,6 +21,11 @@ export type EncryptedSecret = {
   secretCommentIV: string;
   secretCommentTag: string;
   tags: WsTag[];
+
+  secretRemainder?: {
+    cron: string;
+    note: string;
+  };
 };
 
 export type DecryptedSecret = {
@@ -38,6 +43,10 @@ export type DecryptedSecret = {
   overrideAction?: string;
   folderId?: string;
   skipMultilineEncoding?: boolean;
+  secretRemainder?: {
+    cron: string;
+    note: string;
+  };
 };
 
 export type EncryptedSecretVersion = {
