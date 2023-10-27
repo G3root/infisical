@@ -21,7 +21,8 @@ export enum ProjectPermissionSub {
   Workspace = "workspace",
   Secrets = "secrets",
   SecretRollback = "secret-rollback",
-  SecretApproval = "secret-approval"
+  SecretApproval = "secret-approval",
+  SecretRemainder = "secret-remainder"
 }
 
 type SubjectFields = {
@@ -36,6 +37,7 @@ export type ProjectPermissionSet =
     ]
   | [ProjectPermissionActions, ProjectPermissionSub.Role]
   | [ProjectPermissionActions, ProjectPermissionSub.Tags]
+  | [ProjectPermissionActions, ProjectPermissionSub.SecretRemainder]
   | [ProjectPermissionActions, ProjectPermissionSub.Member]
   | [ProjectPermissionActions, ProjectPermissionSub.Integrations]
   | [ProjectPermissionActions, ProjectPermissionSub.Webhooks]

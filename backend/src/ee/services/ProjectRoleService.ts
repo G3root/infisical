@@ -50,7 +50,8 @@ export enum ProjectPermissionSub {
   Workspace = "workspace",
   Secrets = "secrets",
   SecretRollback = "secret-rollback",
-  SecretApproval = "secret-approval"
+  SecretApproval = "secret-approval",
+  SecretRemainder = "secret-remainder"
 }
 
 type SubjectFields = {
@@ -65,6 +66,7 @@ export type ProjectPermissionSet =
     ]
   | [ProjectPermissionActions, ProjectPermissionSub.Role]
   | [ProjectPermissionActions, ProjectPermissionSub.Tags]
+  | [ProjectPermissionActions, ProjectPermissionSub.SecretRemainder]
   | [ProjectPermissionActions, ProjectPermissionSub.Member]
   | [ProjectPermissionActions, ProjectPermissionSub.Integrations]
   | [ProjectPermissionActions, ProjectPermissionSub.Webhooks]
@@ -135,6 +137,11 @@ const buildAdminPermission = () => {
   can(ProjectPermissionActions.Edit, ProjectPermissionSub.Tags);
   can(ProjectPermissionActions.Delete, ProjectPermissionSub.Tags);
 
+  can(ProjectPermissionActions.Read, ProjectPermissionSub.SecretRemainder);
+  can(ProjectPermissionActions.Create, ProjectPermissionSub.SecretRemainder);
+  can(ProjectPermissionActions.Edit, ProjectPermissionSub.SecretRemainder);
+  can(ProjectPermissionActions.Delete, ProjectPermissionSub.SecretRemainder);
+
   can(ProjectPermissionActions.Read, ProjectPermissionSub.AuditLogs);
   can(ProjectPermissionActions.Create, ProjectPermissionSub.AuditLogs);
   can(ProjectPermissionActions.Edit, ProjectPermissionSub.AuditLogs);
@@ -199,6 +206,11 @@ const buildMemberPermission = () => {
   can(ProjectPermissionActions.Edit, ProjectPermissionSub.Tags);
   can(ProjectPermissionActions.Delete, ProjectPermissionSub.Tags);
 
+  can(ProjectPermissionActions.Read, ProjectPermissionSub.SecretRemainder);
+  can(ProjectPermissionActions.Create, ProjectPermissionSub.SecretRemainder);
+  can(ProjectPermissionActions.Edit, ProjectPermissionSub.SecretRemainder);
+  can(ProjectPermissionActions.Delete, ProjectPermissionSub.SecretRemainder);
+
   can(ProjectPermissionActions.Read, ProjectPermissionSub.Role);
   can(ProjectPermissionActions.Read, ProjectPermissionSub.AuditLogs);
   can(ProjectPermissionActions.Read, ProjectPermissionSub.IpAllowList);
@@ -222,6 +234,7 @@ const buildViewerPermission = () => {
   can(ProjectPermissionActions.Read, ProjectPermissionSub.Settings);
   can(ProjectPermissionActions.Read, ProjectPermissionSub.Environments);
   can(ProjectPermissionActions.Read, ProjectPermissionSub.Tags);
+  can(ProjectPermissionActions.Read, ProjectPermissionSub.SecretRemainder);
   can(ProjectPermissionActions.Read, ProjectPermissionSub.AuditLogs);
   can(ProjectPermissionActions.Read, ProjectPermissionSub.IpAllowList);
 
