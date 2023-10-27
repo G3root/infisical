@@ -7,6 +7,7 @@ import {
   SECRET_SHARED
 } from "../variables";
 import { secretRemainderSchema } from "./secretRemainder";
+import { deleteFromSecretRemainderQueue } from "../queues/secret-remainder/secretRemainderQueue";
 
 export interface ISecret {
   _id: Types.ObjectId;
@@ -155,5 +156,29 @@ const secretSchema = new Schema<ISecret>(
 );
 
 secretSchema.index({ tags: 1 }, { background: true });
+
+secretSchema.post("findOneAndDelete", async function (doc: ISecret, next) {
+  if (doc && doc.secretRemainder && doc.secretRemainder.note && doc._id) {
+    await deleteFromSecretRemainderQueue(doc._id.toString(), doc.secretRemainder.cron);
+  }
+
+  next();
+});
+
+secretSchema.pre("deleteMany", async function (next) {
+  try {
+    const deletedData = await Secret.find(this.getFilter()).lean();
+    if (deletedData && deletedData.length) {
+      for (const data of deletedData) {
+        if (data.secretRemainder && data.secretRemainder.cron) {
+          await deleteFromSecretRemainderQueue(data._id.toString(), data.secretRemainder.cron);
+        }
+      }
+    }
+    next();
+  } catch (error: any) {
+    next(error);
+  }
+});
 
 export const Secret = model<ISecret>("Secret", secretSchema);
