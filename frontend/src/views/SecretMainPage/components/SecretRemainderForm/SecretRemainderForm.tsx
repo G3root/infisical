@@ -75,12 +75,23 @@ export const SecretRemainderForm = ({
   };
 
   const onDelete = async () => {
-    await deleteSecretRemainder({
-      environment,
-      secretName: secret.key,
-      secretPath,
-      workspaceId
-    });
+    try {
+      await deleteSecretRemainder({
+        environment,
+        secretName: secret.key,
+        secretPath,
+        workspaceId
+      });
+      createNotification({
+        text: "remainder deleted successfully",
+        type: "success"
+      });
+    } catch (error) {
+      createNotification({
+        text: "an error occurred",
+        type: "error"
+      });
+    }
 
     onToggle(false);
   };
@@ -107,7 +118,7 @@ export const SecretRemainderForm = ({
 
           <div className="flex items-center justify-end gap-x-2">
             {secret?.secretRemainder?.note && (
-              <Button type="button" onClick={onDelete}>
+              <Button colorSchema="danger" type="button" onClick={onDelete}>
                 Delete
               </Button>
             )}
