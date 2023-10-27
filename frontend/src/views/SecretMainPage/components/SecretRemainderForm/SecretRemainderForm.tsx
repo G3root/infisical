@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isValidCron } from "cron-validator";
 import { z } from "zod";
 
 import { useNotificationContext } from "@app/components/context/Notifications/NotificationProvider";
@@ -12,7 +13,10 @@ import {
 import { DecryptedSecret } from "@app/hooks/api/types";
 
 const formSchema = z.object({
-  cron: z.string().min(1),
+  cron: z
+    .string()
+    .min(1)
+    .refine((val) => isValidCron(val), "invalid cron expression"),
   note: z.string().min(1)
 });
 
@@ -101,14 +105,30 @@ export const SecretRemainderForm = ({
       <ModalContent title="Create secret remainder">
         <form onSubmit={handleSubmit(onSubmit)}>
           <FormControl
-            label="Cron"
+            isRequired
+            label="Cron Expression"
             isError={Boolean(errors?.cron)}
             errorText={errors?.cron?.message}
+            helperText={
+              <>
+                Enter a cron expression to schedule a secret remainder. Learn more about cron syntax{" "}
+                <a
+                  className="underline underline-offset-1"
+                  href="https://crontab.guru/examples.html"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  here
+                </a>
+                .
+              </>
+            }
           >
             <Input {...register("cron")} defaultValue={secret?.secretRemainder?.cron} />
           </FormControl>
 
           <FormControl
+            isRequired
             label="Note"
             isError={Boolean(errors?.note)}
             errorText={errors?.note?.message}
