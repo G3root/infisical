@@ -396,7 +396,7 @@ export const SecretItem = memo(
 
                 <ProjectPermissionCan
                   I={ProjectPermissionActions.Edit}
-                  a={subject(ProjectPermissionSub.Secrets, { environment, secretPath })}
+                  a={subject(ProjectPermissionSub.SecretRemainder, { environment, secretPath })}
                 >
                   {(isAllowed) => (
                     <IconButton
