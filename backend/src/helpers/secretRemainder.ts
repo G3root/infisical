@@ -3,7 +3,7 @@ import {
   DeleteSecretRemainderParams,
   UpdateSecretRemainderParams
 } from "../interfaces/services/SecretRemainderService";
-import { Secret } from "../models";
+import { Membership, Secret } from "../models";
 import { getFolderIdFromServiceToken } from "../services/FolderService";
 import { SecretNotFoundError } from "../utils/errors";
 import { generateSecretBlindIndexWithSaltHelper, getSecretBlindIndexSaltHelper } from "./secrets";
@@ -14,6 +14,10 @@ import { ACTION_UPDATE_SECRETS } from "../variables";
 import { TelemetryService } from "../services";
 import { Types } from "mongoose";
 import { AuthData } from "../interfaces/middleware";
+import {
+  addToSecretRemainderQueue,
+  deleteFromSecretRemainderQueue
+} from "../queues/secret-remainder/secretRemainderQueue";
 
 type BaseParams = {
   workspaceId: Types.ObjectId;
@@ -66,6 +70,24 @@ async function updateSecretRemainder({
 
   const folderId = await getFolderIdFromServiceToken(workspaceId, environment, secretPath);
 
+  if (updateAction === "delete" || updateAction === "update") {
+    const prevSecret = await Secret.findOne({
+      folder: folderId,
+      workspace: workspaceId,
+      environment,
+      secretBlindIndex
+    });
+
+    if (!prevSecret) throw SecretNotFoundError();
+
+    if (prevSecret.secretRemainder?.cron) {
+      await deleteFromSecretRemainderQueue(
+        prevSecret._id.toString(),
+        prevSecret.secretRemainder.cron
+      );
+    }
+  }
+
   const secret = await Secret.findOneAndUpdate(
     {
       folder: folderId,
@@ -90,6 +112,21 @@ async function updateSecretRemainder({
   );
 
   if (!secret) throw SecretNotFoundError();
+
+  if (updateAction === "create" || updateAction === "update") {
+    //TODO: add permission validation
+    const users = await Membership.find({
+      workspace: workspaceId
+    }).populate("user");
+
+    await addToSecretRemainderQueue({
+      id: secret._id.toString(),
+      cron: secret.secretRemainder?.cron as string,
+      note: secret.secretRemainder?.note as string,
+      mailsToSend: users.map((item) => item.user.email),
+      secretName
+    });
+  }
 
   const secretVersion = new SecretVersion({
     secret: secret._id,
